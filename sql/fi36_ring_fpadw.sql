@@ -3,20 +3,46 @@ CREATE DATABASE IF NOT EXISTS fi36_ring_fpadw;
 USE fi36_ring_fpadw;
 
 CREATE TABLE IF NOT EXISTS product (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
+    product_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) UNIQUE NOT NULL,
     description TEXT NOT NULL,
     price DECIMAL(10, 2) NOT NULL CHECK (price > 0),
-    image_url VARCHAR(255) DEFAULT NULL,
-    UNIQUE (title)
+    image_url VARCHAR(255) DEFAULT NULL
 );
 
+
+CREATE TABLE IF NOT EXISTS `user` (
+  `user_id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `email` VARCHAR(255) UNIQUE NOT NULL,
+  `password_hash` VARCHAR(255) NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT current_timestamp()
+);
+
+CREATE TABLE IF NOT EXISTS `order` (
+  order_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT,
+  order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  total_amount DECIMAL(10, 2),
+  FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS order_item (
+    order_item_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    total_price DECIMAL(10, 2) AS (quantity * price) STORED,
+    FOREIGN KEY (order_id) REFERENCES `order`(order_id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES product(product_id) ON DELETE CASCADE
+);
+
+
 INSERT INTO `product` VALUES
-(5,'Beispielprodukt','Dies ist ein Beispielprodukt.',19.99,'/product-images/image1.jpg'),
-(6,'DasBesteVomBesten','Lorem ipsum dolor sit, amet consectetur adipisicing elit. Sit, eligendi. Sed et commodi cupiditate itaque sit vero, consequuntur quasi, soluta ratione, animi nobis at quae labore necessitatibus error porro excepturi!',44.44,'/product-images/image-product2.jpg'),
-(7,'Apierzeugungshelferlein','Lorem ipsum dolor sit, amet consectetur adipisicing elit. Sit, eligendi. Sed et commodi cupiditate itaque sit vero, consequuntur quasi, soluta ratione, animi nobis at quae labore necessitatibus error porro excepturi!',23.28,'/product-images/image-product3.jpg'),
-(8,
-  'MSI PRO B650-S WIFI',
+(1,'Beispielprodukt','Dies ist ein Beispielprodukt.',19.99, 'images/product-image-1.jpg'),
+(2, 'DasBesteVomBesten','Lorem ipsum dolor sit, amet consectetur adipisicing elit. Sit, eligendi. Sed et commodi cupiditate itaque sit vero, consequuntur quasi, soluta ratione, animi nobis at quae labore necessitatibus error porro excepturi!',44.44, 'images/product-image-2.jpg'),
+(3, 'Apierzeugungshelferlein','Lorem ipsum dolor sit, amet consectetur adipisicing elit. Sit, eligendi. Sed et commodi cupiditate itaque sit vero, consequuntur quasi, soluta ratione, animi nobis at quae labore necessitatibus error porro excepturi!',23.28, 'images/product-image-3.jpg'),
+(4, 'MSI PRO B650-S WIFI',
   'Formfaktor: ATX | 
   Sockel: AMD AM5 (LGA1718) | 
   Chipsatz: AMD B650 | 
@@ -46,19 +72,8 @@ INSERT INTO `product` VALUES
   PWM-Controller: MP2857 (max. 12 Phasen) | 
   Beleuchtung: N/​A | 
   BIOS: 1x 32MB (256Mb) | 
-  Besonderheiten: Audio+solid capacitors, Diagnostic LED (LED-Indikatoren), 1x M.2-Passivkühler")',
+  Besonderheiten: Audio+solid capacitors, Diagnostic LED (LED-Indikatoren), 1x M.2-Passivkühler',
   100,
-  '/product-images/image1.jpg'
-);
-
-
-
-
-CREATE TABLE IF NOT EXISTS `user` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `email` VARCHAR(255) NOT NULL,
-  `password_hash` VARCHAR(255) NOT NULL,
-  `created_at` TIMESTAMP NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY (`email`)
+  'images/product-image-4.jpg'
+  
 );

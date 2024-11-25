@@ -4,6 +4,10 @@ import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
+import orderRoutes from './routes/Orders.js';
+
+import { authMiddleware } from './middleware/authMiddleware.js';
+
 
 export const app = express();
 
@@ -18,21 +22,11 @@ app.use(cors({
 
 app.use(express.static('public'));
 
+app.use('/orders', orderRoutes);
 
 
-const authMiddleware = async (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ error: 'Nicht autorisiert' });
 
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch (error) {
-        console.log(error);
-        res.status(403).json({ error: 'Token ungültig' });
-    }
-};
+
 
 
 
@@ -82,9 +76,9 @@ app.post('/login', async (req, res) => {
     const passwordMatch = await bcrypt.compare(password, user.password_hash);
     if (!passwordMatch) return res.status(400).json({ error: 'Falsches Passwort' });
 
-    const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.user_id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    res.json({ token, userId: user.id, userEmail: user.email });
+    res.json({ token, userId: user.user_id, userEmail: user.email });
 });
 
 app.get('/products', authMiddleware,  async (req, res) => {
