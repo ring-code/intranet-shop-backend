@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `user_id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `email` VARCHAR(255) UNIQUE NOT NULL,
   `password_hash` VARCHAR(255) NOT NULL,
+  `isadmin` BOOLEAN DEFAULT 0,
   `created_at` TIMESTAMP NULL DEFAULT current_timestamp()
 );
 
@@ -36,6 +37,10 @@ CREATE TABLE IF NOT EXISTS order_item (
     FOREIGN KEY (order_id) REFERENCES `order`(order_id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES product(product_id) ON DELETE CASCADE
 );
+
+INSERT INTO `user` (email, password_hash, isadmin) 
+VALUES ('admin@hardware-gmbh.de', '$2b$10$c4XMsRfttRpPaAvJ2F8cMOWBkxBvh.pcaD86Vr6XYY8PTHWJq30oe', 1);
+
 
 
 INSERT INTO `product` VALUES

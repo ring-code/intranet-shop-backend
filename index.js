@@ -5,10 +5,16 @@ import orderRoutes from './routes/Orders.js';
 import productRoutes from './routes/Products.js';
 import registerRoutes from './routes/Register.js';
 import loginRoutes from './routes/Login.js';
+import adminRoutes from './routes/Admin.js';
+
 
 export const app = express();
 
+
+
 app.use(express.urlencoded({ extended: true}));
+
+
 
 app.use(express.json());
 
@@ -26,6 +32,9 @@ app.use('/login', loginRoutes);
 app.use('/orders', orderRoutes);
 
 app.use('/products', productRoutes);
+
+app.use('/admin', adminRoutes);
+
 
 
 

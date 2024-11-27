@@ -16,6 +16,14 @@ export const authMiddleware = async (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded;
+
+        // admin check
+        if (req.user && req.user.isAdmin) {
+            req.isAdmin = true; 
+        } else {
+            req.isAdmin = false; 
+        }
+        
         next();
     } catch (error) {
         console.log(error);
