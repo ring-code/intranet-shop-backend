@@ -4,56 +4,80 @@ import { authMiddleware } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Place a new order
+/**
+ * POST /orders
+ * Place a new order for the logged-in user.
+ * 
+ * This route requires authentication (handled by `authMiddleware`), and the order details 
+ * (cart and total amount) should be provided in the request body. The order is inserted into
+ * the `order` and `order_item` tables using a database transaction.
+ * @name orders_backend
+ * @route POST /orders
+ * @group Orders - Operations related to user orders
+ * @security BearerAuth
+ * @param {Array} cart - Array of cart items. Each item should contain product_id, quantity, and price.
+ * @param {number} totalAmount - The total amount of the order.
+ * @returns {Object} 201 - Success message with orderId if order is successfully placed.
+ * @returns {Object} 500 - Error message if there is an error during order creation.
+ */
 router.post('/', authMiddleware, async (req, res) => {
     const { cart, totalAmount } = req.body;
     const userId = req.user.id;
-
-    if (!cart || cart.length === 0) {
-        return res.status(400).json({ error: 'Der Warenkorb ist leer.' });
-    }
-
+  
     const conn = await getDatabaseConnection();
     try {
-        // Start transaction
-        await conn.query('START TRANSACTION');
-
-        // Insert into order table
-        const orderResult = await conn.query(
-            'INSERT INTO `order` (user_id, total_amount) VALUES (?, ?)',
-            [userId, totalAmount]
+      // Start transaction
+      await conn.query('START TRANSACTION');
+  
+      // Insert into order table
+      const orderResult = await conn.query(
+        'INSERT INTO `order` (user_id, total_amount) VALUES (?, ?)',
+        [userId, totalAmount]
+      );
+  
+      const orderId = Number(orderResult.insertId);
+  
+      if (!orderId) {
+        console.error('Order creation failed: insertId is invalid.');
+        return res.status(500).json({ error: 'Fehler beim Erstellen der Bestellung.' });
+      }
+  
+      // Insert into order_item table
+      for (const item of cart) {
+        await conn.query(
+          'INSERT INTO order_item (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)',
+          [orderId, item.product_id, item.quantity, item.price]
         );
-
-        // Convert BigInt insertId to number
-        const orderId = Number(orderResult.insertId);
-
-        if (!orderId) {
-            return res.status(500).json({ error: 'Fehler beim Erstellen der Bestellung.' });
-        }
-
-        // Insert into order_item table
-        for (const item of cart) {
-            await conn.query(
-                'INSERT INTO order_item (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)',
-                [orderId, item.product_id, item.quantity, item.price]
-            );
-        }
-
-        // Commit transaction
-        await conn.query('COMMIT');
-        res.status(201).json({ message: 'Bestellung erfolgreich aufgegeben!', orderId });
+      }
+  
+      // Commit transaction
+      await conn.query('COMMIT');
+      res.status(201).json({ message: 'Bestellung erfolgreich aufgegeben!', orderId });
     } catch (err) {
-        // Rollback transaction on error
-        await conn.query('ROLLBACK');
-        console.error(err);
-        res.status(500).json({ error: 'Fehler beim Aufgeben der Bestellung.' });
+      // Rollback transaction on error
+      await conn.query('ROLLBACK');
+      console.error('Error during order creation:', err);
+      res.status(500).json({ error: 'Fehler beim Aufgeben der Bestellung.' });
     } finally {
-        conn.release();
+      conn.release();
     }
-});
+  });
 
 
-// Get orders for the logged-in user
+/**
+ * GET /orders
+ * Retrieves the orders for the logged-in user.
+ *
+ * This route requires authentication (handled by `authMiddleware`). It fetches the user's orders 
+ * from the `order` and `order_item` tables and returns them grouped by order_id.
+ *
+ * @route GET /orders
+ * @group Orders - Operations related to user orders
+ * @security BearerAuth
+ * @returns {Array} 200 - An array of orders with each order containing items (product details, quantity, and price).
+ * @returns {Object} 404 - Error message if no orders are found for the logged-in user.
+ * @returns {Object} 500 - Error message if there is an error during the database query.
+ */
 router.get('/', authMiddleware, async (req, res) => {
     const userId = req.user.id;
 

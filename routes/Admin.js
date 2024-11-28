@@ -8,7 +8,27 @@ import upload from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
-// PUT route for editing a product
+/**
+ * PUT /products/update/:id
+ * Edit a product's details.
+ *
+ * This route allows administrators to update a product's title, price, description, and image.
+ * If an image is uploaded, it will be converted to a .jpg format (if necessary) and saved.
+ * 
+ * @route PUT /products/update/:id
+ * @group Products - Operations related to products
+ * @security BearerAuth
+ * @param {string} id.path.required - The ID of the product to update.
+ * @param {string} title.body.required - The title of the product.
+ * @param {string} price.body.required - The price of the product.
+ * @param {string} description.body.required - The description of the product.
+ * @param {string} image_url.body.optional - The image URL (optional, if image is not uploaded).
+ * @returns {Object} 200 - Success message indicating the product was successfully updated.
+ * @returns {Object} 400 - Error message if required fields are missing.
+ * @returns {Object} 403 - Error message if the user is not an admin.
+ * @returns {Object} 404 - Error message if the product was not found.
+ * @returns {Object} 500 - Error message if there is an issue processing the request.
+ */
 router.put('/update/:id', authMiddleware, upload.single('image'), async (req, res) => {
   
   // Admin check
@@ -16,10 +36,9 @@ router.put('/update/:id', authMiddleware, upload.single('image'), async (req, re
     return res.status(403).json({ error: 'Zugriff verweigert. Nur Administratoren dürfen Produkte bearbeiten.' });
   }
 
-  const { id } = req.params; // Extract product_id from URL parameters
-  const { title, price, description, image_url } = req.body; // Extract product data from request body
+  const { id } = req.params; 
+  const { title, price, description, image_url } = req.body; 
 
-  // Check if all required fields are provided
   if (!title || !price || !description) {
     return res.status(400).json({ error: 'Alle Felder sind erforderlich.' });
   }
@@ -81,11 +100,27 @@ router.put('/update/:id', authMiddleware, upload.single('image'), async (req, re
     console.error('Error updating product:', error);
     res.status(500).json({ error: 'Fehler beim Aktualisieren des Produkts' });
   } finally {
-    conn.release(); // Release the database connection back to the pool
+    conn.release(); 
   }
 });
 
-// DELETE route for removing a product
+/**
+ * DELETE /products/delete/:id
+ * Delete a product.
+ *
+ * This route allows administrators to delete a product by its ID.
+ * If the product has an associated image, the image file is also deleted from the server.
+ * 
+ * @route DELETE /products/delete/:id
+ * @group Products - Operations related to products
+ * @security BearerAuth
+ * @param {string} id.path.required - The ID of the product to delete.
+ * @param {string} image_url.body.optional - The image URL to delete the associated image.
+ * @returns {Object} 200 - Success message indicating the product was successfully deleted.
+ * @returns {Object} 403 - Error message if the user is not an admin.
+ * @returns {Object} 404 - Error message if the product was not found.
+ * @returns {Object} 500 - Error message if there is an issue processing the request.
+ */
 router.delete('/delete/:id', authMiddleware, async (req, res) => {
   
   // Admin Check
@@ -124,8 +159,31 @@ router.delete('/delete/:id', authMiddleware, async (req, res) => {
   }
 });
 
-
+/**
+ * POST /products/insert
+ * Add a new product.
+ *
+ * This route allows administrators to add a new product with a title, price, description, and an optional image.
+ * The image is converted to .jpg format if necessary and its URL is stored in the database.
+ * 
+ * @route POST /products/insert
+ * @group Products - Operations related to products
+ * @security BearerAuth
+ * @param {string} title.body.required - The title of the product.
+ * @param {string} price.body.required - The price of the product.
+ * @param {string} description.body.required - The description of the product.
+ * @param {file} image.body.optional - The image file to upload for the product (optional).
+ * @returns {Object} 201 - Success message with the newly created product ID.
+ * @returns {Object} 403 - Error message if the user is not an admin.
+ * @returns {Object} 500 - Error message if there is an issue processing the request.
+ */
 router.post('/insert', authMiddleware, upload.single('image'), async (req, res) => {
+
+  // Admin Check
+  if (!req.user.isAdmin) {
+    return res.status(403).json({ error: 'Zugriff verweigert. Nur Administratoren dürfen Produkte löschen.' });
+  }
+  
   const { title, price, description } = req.body;
 
   const conn = await getDatabaseConnection();
@@ -140,7 +198,7 @@ router.post('/insert', authMiddleware, upload.single('image'), async (req, res) 
     );
 
     // The database generates the new product id (auto-increment)
-    const newProductId = result.insertId;  // Make sure this value is properly assigned
+    const newProductId = result.insertId; 
 
     // If there's an uploaded file, process it
     if (req.file) {
@@ -195,15 +253,8 @@ router.post('/insert', authMiddleware, upload.single('image'), async (req, res) 
     console.error('Error adding product:', error);
     res.status(500).json({ error: 'Fehler beim Hinzufügen des Produkts' });
   } finally {
-    conn.release(); // Release the database connection back to the pool
+    conn.release(); 
   }
 });
-
-
-
-
-
-
-
 
 export default router;

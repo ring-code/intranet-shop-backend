@@ -1,0 +1,14 @@
+{
+    "source": {
+      "include": ["routes", "middleware"],  
+      "exclude": ["node_modules"]
+    },
+    "opts": {
+      "template": "node_modules/better-docs",
+      "destination": "./docs",  
+      "recurse": true,
+      "plugins": [
+      "node_modules/jsdoc-route-plugin" 
+    ]
+    }
+  }
