@@ -1,0 +1,185 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title> middleware/uploadMiddleware.js</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
+</head>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+            
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    Documentation
+                </a>
+                
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="main">
+        <div
+            class="sidebar "
+            id="sidebarNav"
+        >
+            
+            <nav>
+                
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-Admin.html">Admin</a></li><li><a href="module-Login.html">Login</a></li><li><a href="module-Orders.html">Orders</a></li><li><a href="module-Products.html">Products</a></li><li><a href="module-Registration.html">Registration</a></li><li><a href="module-Validation.html">Validation</a></li><li><a href="module-authMiddleware.html">authMiddleware</a></li><li><a href="module-uploadMiddleware.html">uploadMiddleware</a></li></ul></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p>Source</p>
+                    <h1>middleware/uploadMiddleware.js</h1>
+                </header>
+                
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @module uploadMiddleware
+ * 
+ */
+
+
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+
+/**
+ * Set up the storage configuration for multer to handle file uploads.
+ * It defines where the uploaded files will be stored and how their names will be generated.
+ * 
+ * @type {multer.StorageEngine}
+ */
+const storage = multer.diskStorage({
+  
+  /**
+   * Determines the destination directory for uploaded files.
+   * If the directory doesn't exist, it will be created.
+   * @function findDestination
+   * @param {Object} req - The request object.
+   * @param {Object} file - The file being uploaded.
+   * @param {Function} cb - Callback function to indicate the directory choice.
+   */
+  destination: (req, file, cb) => {
+    const dir = path.resolve('public', 'images');
+    console.log(`Checking directory: ${dir}`);
+
+    // Check if the directory exists, if not, create it
+    if (!fs.existsSync(dir)) {
+      console.log(`Directory does not exist, creating it: ${dir}`);
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    cb(null, dir);
+  },
+
+  /**
+   * Defines how the file name will be set once uploaded.
+   * The filename will include the product ID and the file extension based on the original file.
+   * @function nameFile
+   * @param {Object} req - The request object.
+   * @param {Object} file - The file being uploaded.
+   * @param {Function} cb - Callback function to specify the file name.
+   */
+  filename: (req, file, cb) => {
+    const productId = req.params.id;  // Assuming product ID is in the URL params
+    const ext = path.extname(file.originalname);  // Get file extension
+    console.log(`Saving file as: product-image-${productId}${ext}`);
+    cb(null, `product-image-${productId}${ext}`);
+  }
+});
+
+/**
+ * Set up the multer upload middleware, including storage configuration and file size limits.
+ * @function upload
+ * @type {multer.Instance}
+ */
+const upload = multer({ 
+  storage: storage,  // Define where and how files should be stored
+  limits: { 
+    fileSize: 10 * 1024 * 1024 // Set the file size limit to 10 MB
+  }
+});
+
+export default upload;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.4</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
+
+</body>
+</html>

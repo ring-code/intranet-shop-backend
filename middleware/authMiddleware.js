@@ -1,4 +1,9 @@
+/**
+ * @module authMiddleware
+ * 
+ */
 import jwt from 'jsonwebtoken';
+
 
 /**
  * Middleware to check if the user is authenticated by verifying the JWT token.

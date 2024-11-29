@@ -1,3 +1,9 @@
+/**
+ * @module Admin
+ * 
+ */
+
+
 import getDatabaseConnection from '../db.js';
 import express from 'express';
 import path from 'path';
@@ -8,29 +14,31 @@ import upload from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
+
+
 /**
- * PUT /products/update/:id
  * Edit a product's details.
- *
  * This route allows administrators to update a product's title, price, description, and image.
- * If an image is uploaded, it will be converted to a .jpg format (if necessary) and saved.
+ * If an image is uploaded, it will be converted to a .jpg format (if necessary) and saved as product-image-id.jpg .
+ * @function editProduct
  * 
- * @route PUT /products/update/:id
- * @group Products - Operations related to products
- * @security BearerAuth
- * @param {string} id.path.required - The ID of the product to update.
- * @param {string} title.body.required - The title of the product.
- * @param {string} price.body.required - The price of the product.
- * @param {string} description.body.required - The description of the product.
- * @param {string} image_url.body.optional - The image URL (optional, if image is not uploaded).
+ * @route {PUT} /admin/products/:id
+ * @name editProduct
+ * 
+ * @param {string} id - The ID of the product to update. (from path)
+ * @param {string} title - The title of the product. (from body)
+ * @param {string} price - The price of the product. (from body)
+ * @param {string} description - The description of the product. (from body)
+ * @param {string} [image_url] - The image URL (optional, if no image is uploaded). (from body)
  * @returns {Object} 200 - Success message indicating the product was successfully updated.
  * @returns {Object} 400 - Error message if required fields are missing.
  * @returns {Object} 403 - Error message if the user is not an admin.
  * @returns {Object} 404 - Error message if the product was not found.
  * @returns {Object} 500 - Error message if there is an issue processing the request.
  */
-router.put('/update/:id', authMiddleware, upload.single('image'), async (req, res) => {
-  
+router.put('/update/:id', authMiddleware, upload.single('image'), editProduct);
+
+async function editProduct(req, res) {
   // Admin check
   if (!req.user.isAdmin) {
     return res.status(403).json({ error: 'Zugriff verweigert. Nur Administratoren dürfen Produkte bearbeiten.' });
@@ -102,27 +110,27 @@ router.put('/update/:id', authMiddleware, upload.single('image'), async (req, re
   } finally {
     conn.release(); 
   }
-});
+}
+
 
 /**
- * DELETE /products/delete/:id
- * Delete a product.
- *
- * This route allows administrators to delete a product by its ID.
- * If the product has an associated image, the image file is also deleted from the server.
+ * Delete a product by its ID.
+ * This route allows administrators to delete a product and, if the product has an associated image, delete the image file from the server.
+ * @function deleteProduct
  * 
- * @route DELETE /products/delete/:id
- * @group Products - Operations related to products
- * @security BearerAuth
- * @param {string} id.path.required - The ID of the product to delete.
- * @param {string} image_url.body.optional - The image URL to delete the associated image.
+ * @route {DELETE} /admin/products/:id
+ * @name deleteProduct
+ * 
+ * @param {string} id - The ID of the product to delete. (from path)
+ * @param {string} [image_url] - The image URL of the product, if it exists. (from body, optional)
  * @returns {Object} 200 - Success message indicating the product was successfully deleted.
  * @returns {Object} 403 - Error message if the user is not an admin.
  * @returns {Object} 404 - Error message if the product was not found.
  * @returns {Object} 500 - Error message if there is an issue processing the request.
  */
-router.delete('/delete/:id', authMiddleware, async (req, res) => {
-  
+router.delete('/delete/:id', authMiddleware, deleteProduct);
+
+async function deleteProduct(req, res) {
   // Admin Check
   if (!req.user.isAdmin) {
     return res.status(403).json({ error: 'Zugriff verweigert. Nur Administratoren dürfen Produkte löschen.' });
@@ -157,18 +165,18 @@ router.delete('/delete/:id', authMiddleware, async (req, res) => {
     console.error('Error deleting product:', error);
     res.status(500).json({ error: 'Fehler beim Löschen des Produkts' });
   }
-});
+}
 
 /**
- * POST /products/insert
- * Add a new product.
- *
+ * Add a new product to the database.
  * This route allows administrators to add a new product with a title, price, description, and an optional image.
  * The image is converted to .jpg format if necessary and its URL is stored in the database.
  * 
- * @route POST /products/insert
- * @group Products - Operations related to products
- * @security BearerAuth
+ * @function addProduct
+ * 
+ * @route {POST} /admin/insert
+ * @name addProduct
+ * 
  * @param {string} title.body.required - The title of the product.
  * @param {string} price.body.required - The price of the product.
  * @param {string} description.body.required - The description of the product.
@@ -177,13 +185,14 @@ router.delete('/delete/:id', authMiddleware, async (req, res) => {
  * @returns {Object} 403 - Error message if the user is not an admin.
  * @returns {Object} 500 - Error message if there is an issue processing the request.
  */
-router.post('/insert', authMiddleware, upload.single('image'), async (req, res) => {
+router.post('/insert', authMiddleware, upload.single('image'), addProduct);
 
+async function addProduct(req, res) {
   // Admin Check
   if (!req.user.isAdmin) {
-    return res.status(403).json({ error: 'Zugriff verweigert. Nur Administratoren dürfen Produkte löschen.' });
+    return res.status(403).json({ error: 'Zugriff verweigert. Nur Administratoren dürfen Produkte hinzufügen.' });
   }
-  
+
   const { title, price, description } = req.body;
 
   const conn = await getDatabaseConnection();
@@ -255,6 +264,7 @@ router.post('/insert', authMiddleware, upload.single('image'), async (req, res) 
   } finally {
     conn.release(); 
   }
-});
+}
+
 
 export default router;

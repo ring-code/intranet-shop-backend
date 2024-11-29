@@ -1,3 +1,10 @@
+/**
+ * @module Orders
+ * 
+ */
+
+
+
 import express from 'express';
 import getDatabaseConnection from '../db.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
@@ -5,14 +12,14 @@ import { authMiddleware } from '../middleware/authMiddleware.js';
 const router = express.Router();
 
 /**
- * POST /orders
+ * 
  * Place a new order for the logged-in user.
  * 
  * This route requires authentication (handled by `authMiddleware`), and the order details 
  * (cart and total amount) should be provided in the request body. The order is inserted into
  * the `order` and `order_item` tables using a database transaction.
- * @name orders_backend
- * @route POST /orders
+ * @function placeOrder
+ * @route {POST} /orders
  * @group Orders - Operations related to user orders
  * @security BearerAuth
  * @param {Array} cart - Array of cart items. Each item should contain product_id, quantity, and price.
@@ -65,13 +72,13 @@ router.post('/', authMiddleware, async (req, res) => {
 
 
 /**
- * GET /orders
+ * 
  * Retrieves the orders for the logged-in user.
  *
  * This route requires authentication (handled by `authMiddleware`). It fetches the user's orders 
  * from the `order` and `order_item` tables and returns them grouped by order_id.
- *
- * @route GET /orders
+ * @function getOrders
+ * @route {GET} /orders
  * @group Orders - Operations related to user orders
  * @security BearerAuth
  * @returns {Array} 200 - An array of orders with each order containing items (product details, quantity, and price).
@@ -92,6 +99,7 @@ router.get('/', authMiddleware, async (req, res) => {
             'ORDER BY o.order_date DESC',
             [userId]
         );
+
 
         // Ensure orders is an array
         const ordersArray = Array.isArray(rows) ? rows : [rows];
@@ -119,8 +127,7 @@ router.get('/', authMiddleware, async (req, res) => {
 
             return acc;
         }, {});
-
-       
+        
         res.status(200).json(Object.values(groupedOrders));
     } catch (err) {
         console.error(err);

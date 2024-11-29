@@ -1,0 +1,187 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title> routes/Register.js</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
+</head>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+            
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    Documentation
+                </a>
+                
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="main">
+        <div
+            class="sidebar "
+            id="sidebarNav"
+        >
+            
+            <nav>
+                
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-Admin.html">Admin</a></li><li><a href="module-Login.html">Login</a></li><li><a href="module-Orders.html">Orders</a></li><li><a href="module-Products.html">Products</a></li><li><a href="module-Registration.html">Registration</a></li><li><a href="module-Validation.html">Validation</a></li><li><a href="module-authMiddleware.html">authMiddleware</a></li><li><a href="module-uploadMiddleware.html">uploadMiddleware</a></li></ul></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p>Source</p>
+                    <h1>routes/Register.js</h1>
+                </header>
+                
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @module Registration
+ * 
+ */
+
+
+
+
+import getDatabaseConnection from '../db.js';
+import express from 'express';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { isValidEmail, isValidPassword } from '../utils/validation.js';
+
+const router = express.Router();
+
+/**
+ * POST /register
+ * Handles user registration by validating input, hashing the password, 
+ * inserting the new user into the database, and generating a JWT token.
+ * @function Register
+ * @route {POST} /register
+ * @group Register - Operations related to user registration
+ * @param {string} email.body.required - The user's email address
+ * @param {string} password.body.required - The user's password
+ * @returns {Object} 201 - Registration successful with the JWT token
+ * @returns {Object} 400 - Invalid email or password or duplicate email
+ * @returns {Object} 500 - Internal server error when something goes wrong
+ */
+router.post('/', async (req, res) => {
+    const { email, password } = req.body;
+
+    // Validate email
+    if (!isValidEmail(email)) {
+        return res.status(400).json({ error: 'Ungültige E-Mail-Adresse. Bitte verwenden Sie eine gültige Adresse mit der Domain @hardware-gmbh.de.' });
+    }
+
+    // Validate password
+    if (!isValidPassword(password)) {
+        return res.status(400).json({ error: 'Das Passwort muss mindestens 8 Zeichen lang sein und einen Großbuchstaben, eine Zahl und ein Sonderzeichen enthalten.' });
+    }
+
+    try {
+        const connection = await getDatabaseConnection();
+      
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10); 
+
+        // Insert the user into the database
+        await connection.query('INSERT INTO user (email, password_hash) VALUES (?, ?)', [email, hashedPassword]);
+
+        // Generate JWT token
+        const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+        // Respond with success
+        res.status(201).json({ message: 'Registrierung erfolgreich!', token });
+
+        connection.release(); 
+    
+    } catch (error) {
+        if (error.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({ error: 'Diese E-Mail-Adresse ist bereits registriert!' });
+        }
+
+        console.error('Fehler bei der Registrierung:', error);
+        res.status(500).json({ error: 'Fehler bei der Registrierung. Versuchen Sie es erneut.' });
+         
+    } 
+});
+
+export default router;</code></pre>
+        </article>
+    </section>
+
+
+
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.4</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
+
+</body>
+</html>

@@ -1,3 +1,9 @@
+/**
+ * @module Products
+ * 
+ */
+
+
 import getDatabaseConnection from '../db.js';
 import express from 'express';
 import { authMiddleware } from '../middleware/authMiddleware.js';
@@ -5,11 +11,12 @@ import { authMiddleware } from '../middleware/authMiddleware.js';
 const router = express.Router();
 
 /**
- * GET /products
+ * 
  * Fetches a list of all products from the database. Requires authentication via the `authMiddleware`.
- * @name test
- * @route GET /products
- * @group Products - Operations related to products
+ * @function getOrders
+ * @route {GET} /products
+ *  
+ * 
  * @security BearerAuth
  * @returns {Array} 200 - An array of product objects
  * @returns {Object} 500 - Database error with error details

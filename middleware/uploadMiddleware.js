@@ -1,3 +1,9 @@
+/**
+ * @module uploadMiddleware
+ * 
+ */
+
+
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -5,7 +11,7 @@ import fs from 'fs';
 /**
  * Set up the storage configuration for multer to handle file uploads.
  * It defines where the uploaded files will be stored and how their names will be generated.
- * @name uploadMiddleware
+ * 
  * @type {multer.StorageEngine}
  */
 const storage = multer.diskStorage({
@@ -13,7 +19,7 @@ const storage = multer.diskStorage({
   /**
    * Determines the destination directory for uploaded files.
    * If the directory doesn't exist, it will be created.
-   * 
+   * @function findDestination
    * @param {Object} req - The request object.
    * @param {Object} file - The file being uploaded.
    * @param {Function} cb - Callback function to indicate the directory choice.
@@ -34,7 +40,7 @@ const storage = multer.diskStorage({
   /**
    * Defines how the file name will be set once uploaded.
    * The filename will include the product ID and the file extension based on the original file.
-   * 
+   * @function nameFile
    * @param {Object} req - The request object.
    * @param {Object} file - The file being uploaded.
    * @param {Function} cb - Callback function to specify the file name.
@@ -49,7 +55,7 @@ const storage = multer.diskStorage({
 
 /**
  * Set up the multer upload middleware, including storage configuration and file size limits.
- * 
+ * @function upload
  * @type {multer.Instance}
  */
 const upload = multer({ 

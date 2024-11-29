@@ -1,3 +1,9 @@
+/**
+ * @module Login
+ * 
+ */
+
+
 import getDatabaseConnection from '../db.js';
 import express from 'express';
 import bcrypt from 'bcrypt';
@@ -7,10 +13,13 @@ import { isValidEmail } from '../utils/validation.js';
 const router = express.Router();
 
 /**
- * POST /login
+ * 
  * Handles user login by validating the email, comparing the password with the stored hash,
  * and generating a JWT token upon successful authentication.
- * @name login_backend
+ * 
+ * @name Login
+ * @function Login
+ * @route {POST} /login
  * @param {string} req.body.email - The user's email address
  * @param {string} req.body.password - The user's password
  * @returns {Object} 200 - Success, with a JWT token and user information

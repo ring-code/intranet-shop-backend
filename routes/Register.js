@@ -1,3 +1,11 @@
+/**
+ * @module Registration
+ * 
+ */
+
+
+
+
 import getDatabaseConnection from '../db.js';
 import express from 'express';
 import bcrypt from 'bcrypt';
@@ -10,8 +18,8 @@ const router = express.Router();
  * POST /register
  * Handles user registration by validating input, hashing the password, 
  * inserting the new user into the database, and generating a JWT token.
- * 
- * @route POST /register
+ * @function Register
+ * @route {POST} /register
  * @group Register - Operations related to user registration
  * @param {string} email.body.required - The user's email address
  * @param {string} password.body.required - The user's password
